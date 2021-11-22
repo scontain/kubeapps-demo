@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: memcached-client
+  labels:
+    app: memcached-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: memcached-client
+  template:
+    metadata:
+      labels:
+        app: memcached-client
+    spec:
+      imagePullSecrets:
+        - name: sconeapps
+      containers:
+        - name: memcached-client
+          securityContext:
+            capabilities:
+              add: ["SYS_RAWIO"]
+          image: registry.scontain.com:5050/sconecuratedimages/experimental:memcached-demoapp-alpine3.10-scone5.6.0
+          imagePullPolicy: Always
+          command: ["python3"]
+          env:
+          - name: SCONE_CAS_ADDR
+            value: $SCONE_CAS_ADDR
+          - name: SCONE_LAS_ADDR
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
+          - name: SCONE_CONFIG_ID
+            value: $CLIENT_CONFIG_ID
+          resources:
+            limits:
+              sgx.k8s.io/sgx: 1

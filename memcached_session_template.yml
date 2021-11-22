@@ -1,0 +1,71 @@
+name: $MC_SESSION_NAME
+version: "0.3"
+
+services:
+  - name: memcached
+    image_name: memcached_image
+    command: memcached -u root --enable-ssl -o ssl_chain_cert=/tmp/server.crt,ssl_key=/tmp/server.key,ssl_ca_cert=/tmp/memcached-ca.crt,ssl_verify_mode=2 -v
+    mrenclaves: [$MEMCACHED_MRENCLAVE]
+    pwd: /
+
+# We inject the content of MEMCACHED cofiguration file including
+# the certificate of the MEMCACHED as well as the CA certificate of the session
+images:
+  - name: memcached_image
+    injection_files:
+       - path: /tmp/memcached-ca.crt
+         content: $$SCONE::MEMCACHED_CA_CERT:crt$$ # Export this session's CA certificate & chain
+       - path: /tmp/server.crt
+         content: $$SCONE::memcached:crt$$ # export MEMCACHED server certificate
+       - path: /tmp/server.key
+         content: $$SCONE::memcached:privatekey:pem$$
+       - path: /tmp/client.crt
+         content: $$SCONE::MEMCACHED_CLIENT_CERT:crt$$ # export client certificate
+       - path: /tmp/client.key
+         content: $$SCONE::MEMCACHED_CLIENT_CERT:privatekey:pem$$ # export client key
+
+# Export client credentials from MEMCACHED session.
+# The client CA is the session CA of this session
+secrets:
+  - name: memcached-key # automatically generate MEMCACHED server certificate
+    kind: private-key
+  - name: memcached # automatically generate MEMCACHED server certificate
+    private_key: memcached-key
+    issuer: MEMCACHED_CA_CERT
+    kind: x509
+    dns:
+      - $RELEASE_NAME
+
+  - name: MEMCACHED_CLIENT_KEY
+    kind: private-key
+    export:
+      session: $CLIENT_SESSION_NAME
+  - name: MEMCACHED_CLIENT_CERT # automatically generate client certificate
+    private_key: MEMCACHED_CLIENT_KEY
+    issuer: MEMCACHED_CA_CERT
+    common_name: MEMCACHED_CLIENT_CERT
+    kind: x509
+    export:
+      session: $CLIENT_SESSION_NAME
+
+  - name: MEMCACHED_CA_KEY # export session CA certificate as MEMCACHED CA certificate
+    kind: private-key
+  - name: MEMCACHED_CA_CERT # export session CA certificate as MEMCACHED CA certificate
+    kind: x509-ca
+    common_name: MEMCACHED_CA
+    private_key: MEMCACHED_CA_KEY
+    export:
+      session: $CLIENT_SESSION_NAME
+
+security:
+  attestation:
+    tolerate:
+      # WARNING: For production environments, you must specify TCB
+      # tolerations and ignored Intel Security Advisories.
+      - debug-mode
+      - hyperthreading
+      - outdated-tcb
+      - insecure-configuration
+      - insecure-igpu
+      - software-hardening-needed
+    ignore_advisories: "*"

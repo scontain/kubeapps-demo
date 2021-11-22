@@ -1,0 +1,50 @@
+name: $CLIENT_SESSION_NAME
+version: "0.3"
+
+services:
+  - name: memcached_client
+    image_name: memcached_client_image
+    command: python3 memcached_client.py
+    mrenclaves: [$CLIENT_MRENCLAVE]
+    pwd: /app
+    environment:
+        MEMCACHED_CA: /tmp/memcached-ca.crt
+        CLIENT_CERT: /tmp/client.crt
+        CLIENT_KEY: /tmp/client.key
+        MEMCACHED_CONNECTION_STRING: $RELEASE_NAME:11211
+
+# We inject the content of certificates needed for testing
+# the certificate of the MEMCACHED client as well as the CA certificate
+images:
+  - name: memcached_client_image
+    injection_files:
+       - path: /tmp/memcached-ca.crt
+         content: $$SCONE::MEMCACHED_CA_CERT:crt$$
+       - path: /tmp/client.crt
+         content: $$SCONE::MEMCACHED_CLIENT_CERT:crt$$
+       - path: /tmp/client.key
+         content: $$SCONE::MEMCACHED_CLIENT_CERT:privatekey:pem$$
+
+# Import secrets from Memcached session
+secrets:
+  - name: MEMCACHED_CLIENT_CERT
+    import:
+      session: $MC_SESSION_NAME
+      secret: MEMCACHED_CLIENT_CERT
+  - name: MEMCACHED_CA_CERT
+    import:
+      session: $MC_SESSION_NAME
+      secret: MEMCACHED_CA_CERT
+
+security:
+  attestation:
+    tolerate:
+      # WARNING: For production environments, you must specify TCB
+      # tolerations and ignored Intel Security Advisories.
+      - debug-mode
+      - hyperthreading
+      - outdated-tcb
+      - insecure-configuration
+      - insecure-igpu
+      - software-hardening-needed
+    ignore_advisories: "*"
