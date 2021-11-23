@@ -1,4 +1,5 @@
 chart_values.yml
 client_env
-mrenclaves
 .cas/
+.scone/
+.docker/

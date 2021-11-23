@@ -7,7 +7,7 @@ set -e
 # e.g. get_mrenclave registry.scontain.com:5050/sconecuratedimages/apps:mariadb-10.4-alpine mysqld "-e SCONE_HEAP=2G"
 #
 function get_mrenclave {
-    mre=$(docker run -it $3 --rm -e SCONE_HASH=1 $1 $2)
+    mre=$(docker run $3 --rm -e SCONE_HASH=1 $1 $2)
     ret=$(echo $mre | grep -o -e "[0-9a-f]\{64\}")
     if [ -z "$ret" ]; then
         echo "[ERROR] could not determine mrenclave of "$1 $2
