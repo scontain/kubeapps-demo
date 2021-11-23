@@ -20,11 +20,16 @@ Execute the `pull_images_and_determine_mrenclaves.sh` script to pull the latests
 Submit the policies with the help of SCONE CLI:
 
 ```bash
-docker run -it --rm \
-  -v $PWD:/policy \
-  -v $HOME/.cas:/root/.cas \
-  registry.scontain.com:5050/sconecuratedimages/sconecli:alpine3.10 \
-  bash /policy/upload_policies.sh
+alias scone="docker run -it --rm \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -v \"$HOME/.docker/config.json:/root/.docker/config.json\" \
+    -v \"\$PWD:/root\" \
+    -w /root \
+    registry.scontain.com:5050/community/cli "
+```
+
+```bash
+scone ./upload_policies.sh
 ```
 
 
