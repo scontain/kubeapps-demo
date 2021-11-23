@@ -18,15 +18,19 @@ source "${BASH_SOURCE%/*}/mrenclaves.sh"
 # such address. This is needed because SCONE CLI
 # does not support IP addresses when attesting a CAS.
 # If the provided SCONE_CAS_ADDR is a name, just use it.
-if [[ -z "$SCONE_CAS_ADDR" ]]; then
-    CAS_ADDR="cas"
-elif [[ $SCONE_CAS_ADDR =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+SCONE_CAS_ADDR=${SCONE_CAS_ADDR:-"scone-cas.cf"}
+
+if [[ $SCONE_CAS_ADDR =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
     # NOTE: checking only for a generic IPv4 format (with no octet validation).
     CAS_ADDR="cas"
     echo "$SCONE_CAS_ADDR $CAS_ADDR" >> /etc/hosts
 else
     CAS_ADDR=$SCONE_CAS_ADDR
 fi
+
+# Set release name if not provided. It is used in the sessions
+# to configure dns and reach Memcached service.
+export RELEASE_NAME=${RELEASE_NAME:-"memcached"}
 
 # Attest CAS.
 # Attest CAS before uploading the session file, accept CAS running in debug
@@ -55,7 +59,8 @@ echo "export SCONE_CAS_ADDR="$SCONE_CAS_ADDR"" >> "${BASH_SOURCE%/*}/client_env"
 
 
 # Write the chart default values to chart_values.yml
-# so that the we can easily copy and past into kubeapps
+# so that the we can easily copy and past into kubeapps.
+# If the release name is not set, use "memcached".
 echo -e "\nWriting chart values to \"chart_values.yml\""
 echo "Note that your release name must be \""$RELEASE_NAME"\""
 cat << EOF > ${BASH_SOURCE%/*}/chart_values.yml

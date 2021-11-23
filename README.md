@@ -17,26 +17,10 @@ Execute the `pull_images_and_determine_mrenclaves.sh` script to pull the latests
 ./pull_images_and_determine_mrenclaves.sh
 ```
 
-You need to define the release name so the uploaded sessions will have the correct Kubernetes service name.
-
-**NOTE:** You must use the same release name in the Kubeapps interface when deploying your release.
-
-```bash
-export RELEASE_NAME=memcached
-```
-
-Export your CAS address. This example uses the latest public CAS hosted at `scone-cas.cf`.
-
-```bash
-export SCONE_CAS_ADDR=scone-cas.cf
-```
-
 Submit the policies with the help of SCONE CLI:
 
 ```bash
 docker run -it --rm \
-  -e SCONE_CAS_ADDR=$SCONE_CAS_ADDR \
-  -e RELEASE_NAME=$RELEASE_NAME \
   -v $PWD:/policy \
   -v $HOME/.cas:/root/.cas \
   registry.scontain.com:5050/sconecuratedimages/sconecli:alpine3.10 \
