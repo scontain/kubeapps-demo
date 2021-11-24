@@ -11,12 +11,6 @@ This demonstration guides you through the use of Kubeapps to deploy one of our c
 
 To deploy Memcached with Kubeapps, you need to upload the policies to CAS first. In this example, we also use a Memcached client to see Memcached in action. In this case, the Memcached session exports a certificate and a key to be used by the client since the Memcached has TLS enabled.
 
-Execute the `pull_images_and_determine_mrenclaves.sh` script to pull the latests images for Memcached and determine its MRENCLAVE. Also, the image for the the client will be pulled.
-
-```bash
-./pull_images_and_determine_mrenclaves.sh
-```
-
 Submit the policies with the help of SCONE CLI:
 
 ```bash
@@ -74,4 +68,3 @@ You can see the logs in using the following command.
 kubectl logs -f $(kubectl get pods -o=jsonpath='{.items[0].metadata.name}' \
     -l app=memcached-client)
 ```
-
